@@ -9,13 +9,37 @@ const defaultResponse = {isSuccessfull : true};
 // This will return all the products list.
 Router.get('/', async (req, res, next)=>{ 
     try {
-        const customers = await Customer.find({}).sort({date : -1}).exec();
+        
+        let searchBy = req.query.searchBy || "";
+        let limit = parseInt(req.query.limit) || 10;
+        let page = parseInt(req.query.page) || 0;
+        
+        
+        let regex = new RegExp(searchBy,'i');
+        const searchParameter = { $or: [{name: regex }, {address : regex}]}
+        
+
+        const totalRecords = await Customer.countDocuments(searchParameter);
+        let totalPages = Math.ceil(totalRecords/limit);
+
+
+
+
+        // const customers = await Customer.find({})
+        const customers = await Customer.find(searchParameter)
+        // const customers = await Customer.find({ $or: [{name: regex },{mobileNo: regex}]})
+                                // .sort({date : -1})
+                                .limit(limit)
+                                .skip(page * limit)
+                                .exec();
+                                
+
         res.status(200);
-        res.send({...defaultResponse, customers : customers});
+        res.send({...defaultResponse, customers : customers, pagination : {totalPages : totalPages, page : page, limit : limit, totalRecords : totalRecords}});
     } catch(err) {
         res.status(200);
         res.send({isSuccessfull : false, error : err})
-    }
+    } 
 });
 
 // Router.get('/getSingleProduct', async (req, res, next)=>{
@@ -88,6 +112,25 @@ Router.put('/updateStatus', async (req,res,next)=>{
             res.send({isSuccessfull : false, errorMessage : 'Customer not found.'})
         }
             
+    } catch(err){
+        res.status(200);
+        res.send({isSuccessfull : false, errorMessage : 'Something went wrong, Unable to add customer.',  error : err})
+    }
+});
+
+Router.delete('/', async (req,res,next)=>{
+    const {customerId} = req.body;
+    
+    try{
+        const existingCustomer = await Customer.findById(customerId);
+        if(existingCustomer){
+            const data = await Customer.findByIdAndDelete(customerId); // 'new' will return updated record AND 'runValidators' will run all the validators on data while savilg like "ENUM"
+            res.status(200);
+            res.send({...defaultResponse, data});
+        } else {
+            res.status(200);
+            res.send({isSuccessfull : false, errorMessage : 'Customer not found.'})
+        }
     } catch(err){
         res.status(200);
         res.send({isSuccessfull : false, errorMessage : 'Something went wrong, Unable to add customer.',  error : err})

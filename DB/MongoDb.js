@@ -15,8 +15,9 @@ const connectDB = async ()=>{
     console.log('Trying to connect Mondo DB Atlas Database...')
     try{
         await mongoose.connect(URI, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex : true});
-        console.log('Connected to database successfully...!!!');
-    }catch{
+        console.log('Connected to database successfully...!!!'); 
+    }catch(e){
+        console.log(e)
         process.exit(1);
     }
 }
