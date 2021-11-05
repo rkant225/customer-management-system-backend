@@ -11,12 +11,22 @@ Router.get('/', async (req, res, next)=>{
     try {
         
         let searchBy = req.query.searchBy || "";
+        let itemStatus = req.query.itemStatus || "";
         let limit = parseInt(req.query.limit) || 10;
         let page = parseInt(req.query.page) || 0;
         
+        console.log('itemStatus', itemStatus)
         
         let regex = new RegExp(searchBy,'i');
-        const searchParameter = { $or: [{name: regex }, {address : regex}]}
+        // const searchParameter = { $or: [{name: regex }, {address : regex}, {status : itemStatus}]}
+        
+        let searchParameter = {}
+        if(itemStatus !== ""){
+            searchParameter = {$and : [{ $or: [{name: regex }, {address : regex}]}, {status : itemStatus} ]}
+        } else {
+            searchParameter = { $or: [{name: regex }, {address : regex}]}
+        }
+        
         
 
         const totalRecords = await Customer.countDocuments(searchParameter);
