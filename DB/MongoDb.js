@@ -17,6 +17,7 @@ const connectDB = async ()=>{
         await mongoose.connect(URI, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex : true});
         console.log('Connected to database successfully...!!!'); 
     }catch(e){
+        console.log('Unable to connect to database...!!!'); 
         console.log(e)
         process.exit(1);
     }
